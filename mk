@@ -78,8 +78,17 @@ cat >"$1" <<EOF
 	<string>${BUNDLE_VERSION}</string>
 	<key>CFBundleShortVersionString</key>
 	<string>${SHORT_VERSION_STRING}</string>
-	<key>CSResourcesFileMapped</key>
-	<true/>
+	<key>CFBundleSupportedPlatforms</key>
+	<array>
+		<string>${SDK_NAME}</string>
+	</array>
+	<key>MinimumOSVersion</key>
+	<string>${IOS_DEPLOYMENT_TARGET}</string>
+	<key>UIDeviceFamily</key>
+	<array>
+		<integer>1</integer>
+		<integer>2</integer>
+	</array>
 </dict>
 </plist>
 EOF
@@ -172,63 +181,12 @@ function compile_dummy_app() {
 	}
 	EOF
 
-	cat > $FRAMEWORK/Info.plist <<-EOF
-	<?xml version="1.0" encoding="UTF-8"?>
-	<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
-	<plist version="1.0">
-	<dict>
-		<key>BuildMachineOSBuild</key>
-		<string>22G91</string>
-		<key>CFBundleDevelopmentRegion</key>
-		<string>en</string>
-		<key>CFBundleExecutable</key>
-		<string>React</string>
-		<key>CFBundleIdentifier</key>
-		<string>ch.ijk.React</string>
-		<key>CFBundleInfoDictionaryVersion</key>
-		<string>6.0</string>
-		<key>CFBundleName</key>
-		<string>React</string>
-		<key>CFBundlePackageType</key>
-		<string>FMWK</string>
-		<key>CFBundleShortVersionString</key>
-		<string>1.0</string>
-		<key>CFBundleSupportedPlatforms</key>
-		<array>
-			<string>$SDK_NAME</string>
-		</array>
-		<key>CFBundleVersion</key>
-		<string>1</string>
-		<key>DTCompiler</key>
-		<string>com.apple.compilers.llvm.clang.1_0</string>
-		<key>DTPlatformBuild</key>
-		<string>21A325</string>
-		<key>DTPlatformName</key>
-		<string>iphoneos</string>
-		<key>DTPlatformVersion</key>
-		<string>17.0</string>
-		<key>DTSDKBuild</key>
-		<string>21A325</string>
-		<key>DTSDKName</key>
-		<string>iphoneos17.0</string>
-		<key>DTXcode</key>
-		<string>1500</string>
-		<key>DTXcodeBuild</key>
-		<string>15A240d</string>
-		<key>MinimumOSVersion</key>
-		<string>$IOS_DEPLOYMENT_TARGET</string>
-		<key>UIDeviceFamily</key>
-		<array>
-			<integer>1</integer>
-			<integer>2</integer>
-		</array>
-		<key>UIRequiredDeviceCapabilities</key>
-		<array>
-			<string>arm64</string>
-		</array>
-	</dict>
-	</plist>
-	EOF
+	FRAMEWORK_NAME="React"
+	FRAMEWORK_IDENTIFIER="ch.ijk.React"
+	BUNDLE_VERSION="1"
+	SHORT_VERSION_STRING="1.0.0"
+
+	create_ios_framework_info_plist $FRAMEWORK/Info.plist
 
 	echo "### link $NAME ###"
 
