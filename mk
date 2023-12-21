@@ -11,6 +11,8 @@ set -e
 export NO_FLIPPER=1
 export USE_HERMES=0
 
+IOS_DEPLOYMENT_TARGET=13.0
+
 function install_dummy_app() {
 	cd "$D"
 	if [ ! -e dummyapp ]; then
@@ -86,21 +88,22 @@ EOF
 function compile_dummy_app() {
 	local NAME=$1
 	local DEV=$2
-	local SDK_VER=17.0
 	case $3 in
 		ios)
 			XCODE_SDK=iphoneos
 			SDK_NAME=iPhoneOS
 			LD_PLATFORM=ios
-			TARGET=arm64-apple-ios$SDK_VER
+			TARGET=arm64-apple-ios$IOS_DEPLOYMENT_TARGET
 			;;
 		ios-simulator)
 			XCODE_SDK=iphonesimulator
 			SDK_NAME=iPhoneSimulator
 			LD_PLATFORM=ios-simulator
-			TARGET=arm64-apple-ios$SDK_VER-simulator
+			TARGET=arm64-apple-ios$IOS_DEPLOYMENT_TARGET-simulator
 			;;
 	esac
+
+	echo "### build $NAME ###"
 
 	if [ -d build/$NAME ]; then
 		return
@@ -113,7 +116,10 @@ function compile_dummy_app() {
 	rm -rf build/$NAME
 	mkdir -p build/$NAME/dist
 	FRAMEWORK="build/$NAME/dist/React.framework"
-	xcodebuild clean build -workspace dummyapp/ios/dummyapp.xcworkspace -scheme dummyapp -configuration Release -sdk $XCODE_SDK -arch arm64 -derivedDataPath build/$NAME CODE_SIGN_IDENTITY="" CODE_SIGNING_REQUIRED=NO
+	xcodebuild clean build -workspace dummyapp/ios/dummyapp.xcworkspace -scheme dummyapp -configuration Release -sdk $XCODE_SDK -arch arm64 -derivedDataPath build/$NAME \
+		CODE_SIGN_IDENTITY="" \
+		CODE_SIGNING_REQUIRED=NO \
+		IPHONEOS_DEPLOYMENT_TARGET="$IOS_DEPLOYMENT_TARGET"
 
 	# to display all impvolved pods, add this in the Podfile, inside `post_install do |installer| ... end`:
 	#    installer.pods_project.targets.each do |target|
@@ -210,7 +216,7 @@ function compile_dummy_app() {
 		<key>DTXcodeBuild</key>
 		<string>15A240d</string>
 		<key>MinimumOSVersion</key>
-		<string>12.4</string>
+		<string>$IOS_DEPLOYMENT_TARGET</string>
 		<key>UIDeviceFamily</key>
 		<array>
 			<integer>1</integer>
@@ -224,11 +230,13 @@ function compile_dummy_app() {
 	</plist>
 	EOF
 
+	echo "### link $NAME ###"
+
 	"${XCODE_DEV}/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang" \
 		-Xlinker -reproducible \
 		-target $TARGET \
 		-dynamiclib \
-		-isysroot "${XCODE_DEV}/Platforms/${SDK_NAME}.platform/Developer/SDKs/${SDK_NAME}${SDK_VER}.sdk" \
+		-isysroot "${XCODE_DEV}/Platforms/${SDK_NAME}.platform/Developer/SDKs/${SDK_NAME}.sdk" \
 		-Os -lc++ \
 		-Xlinker -ObjC \
 		$LIBS \
