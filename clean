@@ -1,0 +1,14 @@
+#!/bin/bash
+
+case $0 in
+/*)     D=`dirname $0`;;
+*/*)    D=$PWD/`dirname $0`;;
+*)      D=$PWD;;
+esac
+
+set -e
+
+cd "$d"
+rm -rf build || true
+rm -rf dist || true
+rm -rf dummyapp || true
